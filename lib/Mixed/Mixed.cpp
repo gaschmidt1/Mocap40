@@ -135,7 +135,7 @@ ESP_LOGI(TAG, "Mixed I2c Scan");
 
             Wire.begin(i + BaseMixedDeviceBoardId, SDA_PIN, SCL_PIN, I2C_SPEED);        
             
-            mcp.begin_I2C( i + BaseMixedDeviceBoardId, &Wire);
+            mc[i].begin_I2C( i + BaseMixedDeviceBoardId, &Wire);
 
             mcp[i].pinMode(MixedOut0, OUTPUT);
             mcp[i].pinMode(MixedOut1, OUTPUT);
@@ -148,7 +148,7 @@ ESP_LOGI(TAG, "Mixed I2c Scan");
             mcp[i].pinMode(MixedConfig0, INPUT);
             mcp[i].pinMode(MixedConfig1, INPUT);
 
-            if((mcp[1].digitalRead(MixedConfig0) == false) && (mcp[1].digitalRead(MixedConfig1) == True)) // todo : ver se os endereçamentos estão corretos
+            if((mcp[1].digitalRead(MixedConfig0) == false) && (mcp[1].digitalRead(MixedConfig1) == true)) // todo : ver se os endereçamentos estão corretos
             {
                 MixedAdressVector[TotalDeviceNumber] = i + BaseMixedDeviceBoardId;
             }
