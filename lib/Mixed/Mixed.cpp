@@ -32,11 +32,11 @@
 
 uint8_t MixedAdressVector[ MaxI2cBus];
 
-Adafruit_MCP23X08 mcp[ MaxI2cBus];
+Adafruit_MCP23X08 mixed[ MaxI2cBus];
 
 static const char* TAG = "Mixed";
 
-uint8_t TotalDeviceNumber = 0;
+//uint8_t TotalDeviceNumber = 0;
 
 void TaskMixed (void * pvParameters);
 
@@ -49,35 +49,35 @@ uint8_t MixedDigitalRead(uint8_t pin)
 {
     if(pin < 3)
     {
-        return mcp[0].digitalRead(pin - 0);
+        return mixed[0].digitalRead(pin - 0);
     }
     else if(pin < 6)
     {
-        return mcp[1].digitalRead(pin - 3);
+        return mixed[1].digitalRead(pin - 3);
     }
     else if(pin < 9)
     {
-        return mcp[2].digitalRead(pin - 6);
+        return mixed[2].digitalRead(pin - 6);
     }
     else if(pin < 12)
     {
-        return mcp[3].digitalRead(pin - 9);
+        return mixed[3].digitalRead(pin - 9);
     }
     else if(pin < 15)
     {
-        return mcp[4].digitalRead(pin - 12);
+        return mixed[4].digitalRead(pin - 12);
     }
     else if(pin < 18)
     {
-        return mcp[5].digitalRead(pin - 15);
+        return mixed[5].digitalRead(pin - 15);
     }
     else if(pin < 21)
     {
-        return mcp[6].digitalRead(pin - 18);
+        return mixed[6].digitalRead(pin - 18);
     }
     else if(pin < 24)
     {
-        return mcp[7].digitalRead(pin - 21);
+        return mixed[7].digitalRead(pin - 21);
     }
     else
     {
@@ -89,105 +89,104 @@ void MixedDigitalWrite(uint8_t pin, uint8_t value)
 {
     if(pin < 3)
     {
-        mcp[0].digitalWrite(pin - 0 + 3, value);
+        mixed[0].digitalWrite(pin - 0 + 3, value);
     }
     else if(pin < 6)
     {
-        mcp[1].digitalWrite(pin - 3 + 3, value);
+        mixed[1].digitalWrite(pin - 3 + 3, value);
     }
     else if(pin < 9)
     {
-        mcp[2].digitalWrite(pin - 6 + 3, value);
+        mixed[2].digitalWrite(pin - 6 + 3, value);
     }
     else if(pin < 12)
     {
-        mcp[3].digitalWrite(pin - 9 + 3, value);
+        mixed[3].digitalWrite(pin - 9 + 3, value);
     }
     else if(pin < 15)
     {
-        mcp[4].digitalWrite(pin - 12 + 3, value);
+        mixed[4].digitalWrite(pin - 12 + 3, value);
     }
     else if(pin < 18)
     {
-        mcp[5].digitalWrite(pin - 15 + 3, value);
+        mixed[5].digitalWrite(pin - 15 + 3, value);
     }
     else if(pin < 21)
     {
-        mcp[6].digitalWrite(pin - 18 + 3, value);
+        mixed[6].digitalWrite(pin - 18 + 3, value);
     }
     else if(pin < 24)
     {
-        mcp[7].digitalWrite(pin - 21 + 3, value);
+        mixed[7].digitalWrite(pin - 21 + 3, value);
     }
 }
 
 
-void MixedI2cScan(void)
+uint8_t MixedI2cScan(void)
 {
 ESP_LOGI(TAG, "Mixed I2c Scan");   
+    uint8_t TotalDeviceNumber = 0;    
 
     for (uint8_t i = 0; i < MaxI2cBus; i++)
     {
+        Wire.begin(i + BaseMixedDeviceBoardId, SDA_PIN, SCL_PIN, I2C_SPEED);  
         Wire.beginTransmission(i + BaseMixedDeviceBoardId);
         if (Wire.endTransmission() == 0)
         {
-            ESP_LOGI(TAG, "Mixed I2c Found: %d", i + BaseMixedDeviceBoardId);    
-
-            Wire.begin(i + BaseMixedDeviceBoardId, SDA_PIN, SCL_PIN, I2C_SPEED);        
+            ESP_LOGI(TAG, "Mixed I2c Found: %d", i + BaseMixedDeviceBoardId);                      
             
-            mc[i].begin_I2C( i + BaseMixedDeviceBoardId, &Wire);
+            mixed[i].begin_I2C( i + BaseMixedDeviceBoardId, &Wire);
 
-            mcp[i].pinMode(MixedOut0, OUTPUT);
-            mcp[i].pinMode(MixedOut1, OUTPUT);
-            mcp[i].pinMode(MixedOut2, OUTPUT);
+            mixed[i].pinMode(MixedOut0, OUTPUT);
+            mixed[i].pinMode(MixedOut1, OUTPUT);
+            mixed[i].pinMode(MixedOut2, OUTPUT);
 
-            mcp[i].pinMode(MixedIn0, INPUT);
-            mcp[i].pinMode(MixedIn1, INPUT);
-            mcp[i].pinMode(MixedIn2, INPUT);
+            mixed[i].pinMode(MixedIn0, INPUT);
+            mixed[i].pinMode(MixedIn1, INPUT);
+            mixed[i].pinMode(MixedIn2, INPUT);
 
-            mcp[i].pinMode(MixedConfig0, INPUT);
-            mcp[i].pinMode(MixedConfig1, INPUT);
+            mixed[i].pinMode(MixedConfig0, INPUT);
+            mixed[i].pinMode(MixedConfig1, INPUT);
 
-            if((mcp[1].digitalRead(MixedConfig0) == false) && (mcp[1].digitalRead(MixedConfig1) == true)) // todo : ver se os endereçamentos estão corretos
+            if((mixed[i].digitalRead(MixedConfig0) == false) && (mixed[i].digitalRead(MixedConfig1) == true)) // todo : ver se os endereçamentos estão corretos
             {
-                MixedAdressVector[TotalDeviceNumber] = i + BaseMixedDeviceBoardId;
-            }
-            
-            TotalDeviceNumber++;
+                MixedAdressVector[TotalDeviceNumber++] = i + BaseMixedDeviceBoardId;
+            }                        
         }
     }
+    return TotalDeviceNumber;
 }
 
 void MixedInit(void)
 {
     ESP_LOGI(TAG, "Mixed Init");
+    if(xSemaphoreTake(I2cBusSemaphore, portMAX_DELAY) == pdTRUE)
+    {
+        if(MixedI2cScan() > 0)
+        {
+            MixedSemaphore = xSemaphoreCreateBinary();
+
+            xSemaphoreGive(MixedSemaphore);
+
+            xTaskCreate(TaskMixed, "TaskMixed", 10000, NULL, 2, &TaskMixedHandle);
+        }
+        else
+        {
+            ESP_LOGI(TAG, "Mixed I2c Scan Failed. No Mixed boards found");
+        }
+    }
+
+    xSemaphoreGive(I2cBusSemaphore);
 
     MixedSemaphore = xSemaphoreCreateBinary();
 
     xSemaphoreGive(MixedSemaphore);
 
-    xTaskCreate(TaskMixed, "TaskMixed", 10000, NULL, 2, &TaskMixedHandle);
 }
 
 void TaskMixed (void * pvParameters)
 {
     ESP_LOGI(TAG, "Mixed Task");
-
-    // Nesse trecho pode ser necessario varrer todos os endereços do barramento I2C e certificar se é o hardware correto (6 e 7)
-
-    //Wire.begin(BaseMixedDeviceBoardId, SDA_PIN, SCL_PIN, I2C_SPEED);
-
-    //mcp.begin_I2C(BaseMixedDeviceBoardId, &Wire);
-
-    //if (!mcp.begin_I2C()) 
-    //{
-    //    Serial.println("Error initializing MCP23xxx device.");
-    //    while (1);
-    //}
-
-    //mcp.pinMode(MixedOut0, OUTPUT);
-
-    //mcp.pinMode(MixedIn0, INPUT_PULLUP);
 
     Serial.println("Setup completed.");
 
