@@ -45,15 +45,81 @@ extern SemaphoreHandle_t I2cBusSemaphore;
 
 TaskHandle_t TaskMixedHandle;
 
-//int8_t MixedDigitalRead(uint8_t pin)
-//{
-    
-//}
+uint8_t MixedDigitalRead(uint8_t pin)
+{
+    if(pin < 3)
+    {
+        return mcp[0].digitalRead(pin - 0);
+    }
+    else if(pin < 6)
+    {
+        return mcp[1].digitalRead(pin - 3);
+    }
+    else if(pin < 9)
+    {
+        return mcp[2].digitalRead(pin - 6);
+    }
+    else if(pin < 12)
+    {
+        return mcp[3].digitalRead(pin - 9);
+    }
+    else if(pin < 15)
+    {
+        return mcp[4].digitalRead(pin - 12);
+    }
+    else if(pin < 18)
+    {
+        return mcp[5].digitalRead(pin - 15);
+    }
+    else if(pin < 21)
+    {
+        return mcp[6].digitalRead(pin - 18);
+    }
+    else if(pin < 24)
+    {
+        return mcp[7].digitalRead(pin - 21);
+    }
+    else
+    {
+        return 255;
+    }
+}
 
-//void MixedDigitalWrite(uint8_t pin, uint8_t value)
-//{
-    
-//}
+void MixedDigitalWrite(uint8_t pin, uint8_t value)
+{
+    if(pin < 3)
+    {
+        mcp[0].digitalWrite(pin - 0 + 3, value);
+    }
+    else if(pin < 6)
+    {
+        mcp[1].digitalWrite(pin - 3 + 3, value);
+    }
+    else if(pin < 9)
+    {
+        mcp[2].digitalWrite(pin - 6 + 3, value);
+    }
+    else if(pin < 12)
+    {
+        mcp[3].digitalWrite(pin - 9 + 3, value);
+    }
+    else if(pin < 15)
+    {
+        mcp[4].digitalWrite(pin - 12 + 3, value);
+    }
+    else if(pin < 18)
+    {
+        mcp[5].digitalWrite(pin - 15 + 3, value);
+    }
+    else if(pin < 21)
+    {
+        mcp[6].digitalWrite(pin - 18 + 3, value);
+    }
+    else if(pin < 24)
+    {
+        mcp[7].digitalWrite(pin - 21 + 3, value);
+    }
+}
 
 
 void MixedI2cScan(void)
@@ -82,7 +148,7 @@ ESP_LOGI(TAG, "Mixed I2c Scan");
             mcp[i].pinMode(MixedConfig0, INPUT);
             mcp[i].pinMode(MixedConfig1, INPUT);
 
-            if((mcp[1].digitalRead(6) == 0) && (mcp[1].digitalRead(7) == 1)) // todo : ver se os endereçamentos estão corretos
+            if((mcp[1].digitalRead(MixedConfig0) == false) && (mcp[1].digitalRead(MixedConfig1) == True)) // todo : ver se os endereçamentos estão corretos
             {
                 MixedAdressVector[TotalDeviceNumber] = i + BaseMixedDeviceBoardId;
             }
