@@ -20,7 +20,6 @@ SemaphoreHandle_t I2cBusSemaphore;
 
 static const char* TAG = "Main";
 
-
 void setup() 
 {
   Serial.begin(115200);

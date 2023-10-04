@@ -1,6 +1,6 @@
 
-// todo : verirficar como funciona o endereçamento nessa biblioteca (não tenho certeza de que diferentes placas não vão dar conflito de i/Os)
-// Todo : preciso verirficar como a lib trata os i/os e como os numera
+// todo : verirficar como funciona o endereçamento nessa biblioteca (não tenho certeza de que diferentes placas não vão dar conflito de i/Os).
+// Todo : preciso verirficar como a lib trata os i/os e como os numera.
 
 #include "Mixed.h"
 #include <Adafruit_BusIO_Register.h>
@@ -36,8 +36,6 @@ Adafruit_MCP23X08 mixed[ MaxI2cBus];
 
 static const char* TAG = "Mixed";
 
-//uint8_t TotalDeviceNumber = 0;
-
 void TaskMixed (void * pvParameters);
 
 SemaphoreHandle_t MixedSemaphore;
@@ -45,6 +43,15 @@ extern SemaphoreHandle_t I2cBusSemaphore;
 
 TaskHandle_t TaskMixedHandle;
 
+/**
+ * Returns the digital value read from a mixed pin.
+ *
+ * @param pin The pin number to read from.
+ *
+ * @return The digital value read from the pin.
+ *
+ * @throws None.
+ */
 uint8_t MixedDigitalRead(uint8_t pin)
 {
     if(pin < 3)
@@ -85,6 +92,14 @@ uint8_t MixedDigitalRead(uint8_t pin)
     }
 }
 
+/**
+ * MixedDigitalWrite is a function that writes a digital value to a pin.
+ *
+ * @param pin The pin number to write to.
+ * @param value The value to write to the pin.
+ *
+ * @throws None
+ */
 void MixedDigitalWrite(uint8_t pin, uint8_t value)
 {
     if(pin < 3)
@@ -122,14 +137,19 @@ void MixedDigitalWrite(uint8_t pin, uint8_t value)
 }
 
 
+/**
+ * Scans for mixed I2C devices and returns the total number of devices found.
+ *
+ * @return the total number of mixed I2C devices found
+ */
 uint8_t MixedI2cScan(void)
 {
 ESP_LOGI(TAG, "Mixed I2c Scan");   
     uint8_t TotalDeviceNumber = 0;    
-
+    Wire.begin(SDA_PIN, SCL_PIN, I2C_SPEED);  
     for (uint8_t i = 0; i < MaxI2cBus; i++)
     {
-        Wire.begin(i + BaseMixedDeviceBoardId, SDA_PIN, SCL_PIN, I2C_SPEED);  
+        
         Wire.beginTransmission(i + BaseMixedDeviceBoardId);
         if (Wire.endTransmission() == 0)
         {
@@ -157,6 +177,13 @@ ESP_LOGI(TAG, "Mixed I2c Scan");
     return TotalDeviceNumber;
 }
 
+/**
+ * Initializes the Mixed component.
+ *
+ * @return void
+ *
+ * @throws None
+ */
 void MixedInit(void)
 {
     ESP_LOGI(TAG, "Mixed Init");
@@ -165,9 +192,7 @@ void MixedInit(void)
         if(MixedI2cScan() > 0)
         {
             MixedSemaphore = xSemaphoreCreateBinary();
-
             xSemaphoreGive(MixedSemaphore);
-
             xTaskCreate(TaskMixed, "TaskMixed", 10000, NULL, 2, &TaskMixedHandle);
         }
         else
@@ -175,27 +200,30 @@ void MixedInit(void)
             ESP_LOGI(TAG, "Mixed I2c Scan Failed. No Mixed boards found");
         }
     }
-
     xSemaphoreGive(I2cBusSemaphore);
-
     MixedSemaphore = xSemaphoreCreateBinary();
-
     xSemaphoreGive(MixedSemaphore);
-
 }
 
+/**
+ * TaskMixed function.
+ *
+ * @param pvParameters void pointer to parameters
+ *
+ * @return void
+ *
+ * @throws None
+ */
 void TaskMixed (void * pvParameters)
 {
     ESP_LOGI(TAG, "Mixed Task");
-
     Serial.println("Setup completed.");
-
     while(true)
     {
         if((xSemaphoreTake(MixedSemaphore, portMAX_DELAY) == pdTRUE)
         && (xSemaphoreTake(I2cBusSemaphore, portMAX_DELAY) == pdTRUE))
         {
-            // todo  aqi escreve todas as saidas e todas as entradas
+            // todo  aqui escreve todas as saidas e todas as entradas
             vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
         xSemaphoreGive(MixedSemaphore);

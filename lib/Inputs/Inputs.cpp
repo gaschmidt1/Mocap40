@@ -40,6 +40,15 @@ extern SemaphoreHandle_t I2cBusSemaphore;
 
 TaskHandle_t TaskInputsHandle;
 
+/**
+ * Reads the digital value of a specified pin.
+ *
+ * @param pin the pin number to read from
+ *
+ * @return the digital value of the pin (0 or 1)
+ *
+ * @throws None
+ */
 uint8_t InputsDigitalRead(uint8_t pin)
 {
     if(pin < 8)
@@ -80,14 +89,22 @@ uint8_t InputsDigitalRead(uint8_t pin)
     }
 }
 
+/**
+ * Scans the I2C bus for connected devices and initializes them.
+ *
+ * @return The total number of devices found on the I2C bus.
+ *
+ * @throws None
+ */
 uint8_t InputsI2cScan(void)
 {
 ESP_LOGI(TAG, "Inputs I2c Scan");   
-    uint8_t TotalDeviceNumber = 0;
 
+    uint8_t TotalDeviceNumber = 0;
+    Wire.begin(SDA_PIN, SCL_PIN, I2C_SPEED);
     for (uint8_t i = 0; i < MaxI2cBus; i++)
     {
-        Wire.begin(i + BaseInputsDeviceBoardId, SDA_PIN, SCL_PIN, I2C_SPEED);
+        
         Wire.beginTransmission(i + BaseInputsDeviceBoardId);
 
         if (Wire.endTransmission() == 0)
@@ -110,13 +127,18 @@ ESP_LOGI(TAG, "Inputs I2c Scan");
 
             if((input[i].digitalRead(InputsConfig0) == false) && (input[i].digitalRead(InputsConfig1) == true)) // todo : ver se os endereçamentos estão corretos
             {
-                InputsAdressVector[TotalDeviceNumber++] = i + BaseInputsDeviceBoardId;
+                InputsAdressVector[TotalDeviceNumber++] = i + BaseInputsDeviceBoardId; //talvez tenha que usar isso na hora de endereçar
             }                        
         }
     }
     return TotalDeviceNumber;
 }
 
+/**
+ * Initializes the inputs for the system.
+ *
+ * @throws None
+ */
 void InputsInit(void)
 {
     ESP_LOGI(TAG, "Inputs Init");
@@ -126,9 +148,7 @@ void InputsInit(void)
         if(InputsI2cScan() > 0)
         {
             InputsSemaphore = xSemaphoreCreateBinary();
-
             xSemaphoreGive(InputsSemaphore);
-
             xTaskCreate(TaskInputs, "InputsMixed", 10000, NULL, 2, &TaskInputsHandle);
         }
         else
@@ -136,16 +156,22 @@ void InputsInit(void)
             ESP_LOGI(TAG, "Inputs I2c Scan Failed. No Inputs boards found");
         }
     }
-
     xSemaphoreGive(I2cBusSemaphore);
-
     InputsSemaphore = xSemaphoreCreateBinary();
-
     xSemaphoreGive(InputsSemaphore); 
 
 
 }
 
+/**
+ * TaskInputs function is responsible for handling inputs.
+ *
+ * @param pvParameters a pointer to the parameters of the task
+ *
+ * @return void
+ *
+ * @throws None
+ */
 void TaskInputs (void * pvParameters)
 {
     ESP_LOGI(TAG, "Inputs Task");
@@ -154,7 +180,7 @@ void TaskInputs (void * pvParameters)
         if((xSemaphoreTake(InputsSemaphore, portMAX_DELAY) == pdTRUE)
         && (xSemaphoreTake(I2cBusSemaphore, portMAX_DELAY) == pdTRUE))
         {
-            // do something
+            // todo aqui fica acompanhando o estad das entradas
             vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
         xSemaphoreGive(InputsSemaphore); 
