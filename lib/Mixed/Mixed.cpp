@@ -1,6 +1,6 @@
 
-// todo : verirficar como funciona o endereçamento nessa biblioteca (não tenho certeza de que diferentes placas não vão dar conflito de i/Os).
-// Todo : preciso verirficar como a lib trata os i/os e como os numera.
+// todo : verificar como funciona o endereçamento nessa biblioteca (não tenho certeza de que diferentes placas não vão dar conflito de i/Os).
+// Todo : preciso verificar como a lib trata os i/os e como os numera.
 
 #include "Mixed.h"
 #include <Adafruit_BusIO_Register.h>
@@ -168,7 +168,7 @@ ESP_LOGI(TAG, "Mixed I2c Scan");
             mixed[i].pinMode(MixedConfig0, INPUT);
             mixed[i].pinMode(MixedConfig1, INPUT);
 
-            if((mixed[i].digitalRead(MixedConfig0) == false) && (mixed[i].digitalRead(MixedConfig1) == true)) // todo : ver se os endereçamentos estão corretos
+            if((mixed[i].digitalRead(MixedConfig0) == false) && (mixed[i].digitalRead(MixedConfig1) == true)) 
             {
                 MixedAdressVector[TotalDeviceNumber++] = i + BaseMixedDeviceBoardId;
             }                        
