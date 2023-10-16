@@ -85,7 +85,7 @@ uint8_t InputsDigitalRead(uint8_t pin)
     }
     else
     {
-        return 255;
+        return(255);
     }
 }
 

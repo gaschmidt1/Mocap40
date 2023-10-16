@@ -88,7 +88,7 @@ uint8_t MixedDigitalRead(uint8_t pin)
     }
     else
     {
-        return 255;
+        return(255);
     }
 }
 

@@ -1,5 +1,12 @@
 
+#include "Mixed.h"
+#include <Adafruit_BusIO_Register.h>
+#include <Adafruit_MCP23X08.h>
+#include <Wire.h>
+#include <pins_arduino.h>
 
+static const char* TAG = "I2cScan";
+// todo : criar um  semaforo para controle das rotinas
 #define SDA_PIN 7
 #define SCL_PIN 6 
 #define I2C_SPEED 100000
@@ -11,13 +18,22 @@
 #define Config0 6
 #define Config1 7
 
-enum I2cBoardTypes = {BoardInput, BoardMixed, BoardOutput};
+// I2C Bus Semaphore 
+SemaphoreHandle_t I2cBusSemaphore;
+
+enum I2cBoardTypes {BoardInput, BoardMixed, BoardOutput};
 
 uint8_t I2cAdressVector[ MaxI2cBus];
 uint8_t I2cTypeVector[ MaxI2cBus];
 Adafruit_MCP23X08 I2cBoard[ MaxI2cBus];
 
-// scaneia o barramento e configura os i/os
+/**
+ * Scans for I2C boards and initializes them.
+ *
+ * @return the total number of I2C boards found
+ *
+ * @throws ErrorType if there is an error during the scanning process
+ */
 uint8_t I2cScan(void)
 {
 	uint8_t i, j;
@@ -25,6 +41,8 @@ uint8_t I2cScan(void)
 	ESP_LOGI(TAG, "I2c Boards Scan..."); 
   
     uint8_t TotalDeviceNumber = 0; 
+
+	I2cBusSemaphore = xSemaphoreCreateBinary();
 	
     Wire.begin(SDA_PIN, SCL_PIN, I2C_SPEED); 
 	// varre os 8 endereços possíveis.
@@ -35,6 +53,7 @@ uint8_t I2cScan(void)
 		// testa se a placa está presente.
         if(Wire.endTransmission() == 0)
         {
+			// configura as entradas e faz a leitura para descobriri o tipo.
             ESP_LOGI(TAG, "I2c Board Found: %d", i + BaseDeviceBoardId);                      
             I2cBoard[i].begin_I2C( i + BaseDeviceBoardId, &Wire);
             I2cBoard[i].pinMode(Config0, INPUT);
@@ -83,11 +102,21 @@ uint8_t I2cScan(void)
             }
         }
     }
+	xSemaphoreGive(I2cBusSemaphore); 
 	// retorna dom o numero total de placas encontradas.
     return(TotalDeviceNumber);
 }
 
-uint8_t InputsDigitalRead(uint8_t pin)
+/**
+ * Reads the digital value of the specified pin.
+ *
+ * @param pin the pin number to read from
+ *
+ * @return the digital value of the pin (HIGH or LOW)
+ *
+ * @throws ErrorType if the pin is out of range or not available
+ */
+uint8_t InputsDigitalRead2(uint8_t pin)
 {
 	uint8_t totalInputs = 0;
 	
@@ -144,14 +173,20 @@ uint8_t InputsDigitalRead(uint8_t pin)
 		}
 	
 	}
-	else
-	{
 		// erro: não existe a entrada
-		return(255);
-	}
+	return(255);
 }
 
-uint8_t MixedDigitalRead(uint8_t pin)
+/**
+ * MixedDigitalRead function reads a digital value from the given pin. It checks if the pin is within the range of the mixed pins available on the I2C board. If the pin is within range, it determines the I2C board and the corresponding pin on that board to read the digital value from. If the pin is not within range, it returns an error value of 255.
+ *
+ * @param pin The pin number to read the digital value from.
+ *
+ * @return The digital value read from the pin.
+ *
+ * @throws None.
+ */
+uint8_t MixedDigitalRead2(uint8_t pin)
 {
 	uint8_t totalMixed = 0;
 	
@@ -206,14 +241,22 @@ uint8_t MixedDigitalRead(uint8_t pin)
 			return(I2cBoard[pin / 6].digitalRead(pin + 35));
 		}		
 	}
-	else
-	{
 		// erro: não existe a entrada
-		return(255);
-	}
+	return(255);
+
 }
 
-uint8_t MixedDigitalWrite(uint8_t pin)
+/**
+ * MixedDigitalWrite function writes a digital value to a pin on a mixed board.
+ *
+ * @param pin the pin number to write to
+ * @param value the value to write to the pin
+ *
+ * @return 1 if the pin was written successfully, 0 otherwise
+ *
+ * @throws None
+ */
+uint8_t MixedDigitalWrite2(uint8_t pin, uint8_t value)
 {
 	uint8_t totalMixed = 0;
 	
@@ -230,52 +273,64 @@ uint8_t MixedDigitalWrite(uint8_t pin)
 	{
 		if(pin < 3)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 0 + 3));
+			I2cBoard[pin / 6].digitalWrite(pin + 0 + 3, value);
 		}
 		else 
 		if(pin < 6)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 5 + 3));
+			I2cBoard[pin / 6].digitalWrite(pin + 5 + 3, value);
 		}
 		else 
 		if(pin < 9)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 10 + 3));
+			I2cBoard[pin / 6].digitalWrite(pin + 10 + 3, value);
 		}
 		else 
 		if(pin < 12)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 15 + 3));
+			I2cBoard[pin / 6].digitalWrite(pin + 15 + 3, value);
 		}
 		else 
 		if(pin < 15)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 20 + 3));
+			I2cBoard[pin / 6].digitalWrite(pin + 20 + 3, value);
 		}
 		else 
 		if(pin < 18)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 25 + 3));
+			I2cBoard[pin / 6].digitalWrite(pin + 25 + 3, value);
 		}
 		else 
 		if(pin < 21)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 30 + 3));
+			I2cBoard[pin / 6].digitalWrite(pin + 30 + 3, value);
 		}
 		else 
 		if(pin < 24)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 35 + 3));
-		}		
+			I2cBoard[pin / 6].digitalWrite(pin + 35 + 3, value);
+		}
+		else
+		{
+			return(0);
+		}
+		return(1);		
 	}
-	else
-	{
 		// erro: não existe a entrada
-		return(255);
-	}
+	return(0);
 }
 
-uint8_t OutputDigitalWrite(uint8_t pin)
+/**
+ * MixedDigitalWrite function writes a digital value to a pin on a mixed board.
+ *
+ * @param pin the pin number to write to
+ * @param value the value to write to the pin
+ *
+ * @return 1 if the pin was written successfully, 0 otherwise
+ *
+ * @throws None
+ */
+uint8_t OutputDigitalWrite2(uint8_t pin, uint8_t value)
 {
 	uint8_t totalOutput = 0;
 	
@@ -292,47 +347,51 @@ uint8_t OutputDigitalWrite(uint8_t pin)
 	{
 		if(pin < 3)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 0));
+			I2cBoard[pin / 6].digitalWrite(pin + 0, value);
 		}
 		else 
 		if(pin < 6)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 2));
+			I2cBoard[pin / 6].digitalWrite(pin + 2, value);
 		}
 		else 
 		if(pin < 9)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 4));
+			I2cBoard[pin / 6].digitalWrite(pin + 4, value);
 		}
 		else 
 		if(pin < 12)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 8));
+			I2cBoard[pin / 6].digitalWrite(pin + 8, value);
 		}
 		else 
 		if(pin < 15)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 10));
+			I2cBoard[pin / 6].digitalWrite(pin + 10, value);
 		}
 		else 
 		if(pin < 18)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 12));
+			I2cBoard[pin / 6].digitalWrite(pin + 12, value);
 		}
 		else 
 		if(pin < 21)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 14));
+			I2cBoard[pin / 6].digitalWrite(pin + 14, value);
 		}
 		else 
 		if(pin < 24)
 		{
-			return(I2cBoard[pin / 6].digitalWrite(pin + 16));
-		}		
+			I2cBoard[pin / 6].digitalWrite(pin + 16, value);
+		}
+		else
+		{
+			return(0); // numero não existe
+		}
+		return(1);	// tudo certo	
 	}
-	else
-	{
-		// erro: não existe a entrada
-		return(255);
-	}
+
+	// erro: não existe a entrada
+	return(0);
+
 }

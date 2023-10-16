@@ -7,6 +7,7 @@
 #include <freertos/semphr.h>
 #include <esp_log.h>
 
+#include "I2cScan.h"
 #include "Analog.h"
 #include "Display.h"
 #include "Encoder.h"
@@ -15,8 +16,7 @@
 #include "Mixed.h"
 #include "Outputs.h"
 
-// I2C Bus Semaphore 
-SemaphoreHandle_t I2cBusSemaphore;
+
 
 static const char* TAG = "Main";
 
@@ -24,10 +24,9 @@ void setup()
 {
   Serial.begin(115200);
 
-  I2cBusSemaphore = xSemaphoreCreateBinary();
 
-  xSemaphoreGive(I2cBusSemaphore); 
 
+  I2cScan();
   AnalogInit();
   DisplayInit();
   EncoderInit();
