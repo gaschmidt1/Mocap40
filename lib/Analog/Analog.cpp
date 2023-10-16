@@ -8,16 +8,18 @@
 
 #define RESOLUTION_MCP320X 12   // Resolution of MCP320X
 #define SPI_SPEED 100000        // SPI speed
-#define SCK_PIN 3
-#define MISO_PIN 2
-#define MOSI_PIN 4
-#define CS1_PIN 10
-#define CS2_PIN 9
-#define CS3_PIN 8
+#define SCK_PIN 3               // SCK pin
+#define MISO_PIN 2              // MISO pin
+#define MOSI_PIN 4              // MOSI pin
+#define CS1_PIN 10              // CS1 pin
+#define CS2_PIN 9               // CS2 pin
+#define CS3_PIN 8               // CS3 pin
 
+// SPI Class 
 SPIClass spi;
 MCP3208 adc;
 
+// Analog variables
 uint16_t Channel[3][8];
 uint8_t CsPin[3] = {CS1_PIN, CS2_PIN, CS3_PIN};
 
@@ -25,9 +27,17 @@ static const char* TAG = "Analog";
 
 void TaskAnalog (void * pvParameters);
 
+// Analog function control
 SemaphoreHandle_t AnalogSemaphore;
 TaskHandle_t TaskAnalogHandle;
 
+/**
+ * Initializes the analog functionality.
+ *
+ * @return void
+ *
+ * @throws None
+ */
 void AnalogInit(void)
 {
     ESP_LOGI(TAG, "Analog Init");
@@ -39,12 +49,19 @@ void AnalogInit(void)
     xTaskCreate(TaskAnalog, "TaskAnalog", 10000, NULL, 2, &TaskAnalogHandle);
 }
 
+/**
+ * TaskAnalog function is responsible for performing analog readings and executing some logic.
+ *
+ * @param pvParameters a pointer to the parameters of the task
+ *
+ * @return void
+ *
+ * @throws None
+ */
 void TaskAnalog (void * pvParameters)
 {
     ESP_LOGI(TAG, "Analog Task");
     
-
-
     while(true)
     {
         if(xSemaphoreTake(AnalogSemaphore, portMAX_DELAY) == pdTRUE)
