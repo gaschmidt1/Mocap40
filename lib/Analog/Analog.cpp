@@ -6,6 +6,7 @@
 #include <MCP3208.h>
 #include <SPI.h>
 
+// SPI configuration
 #define RESOLUTION_MCP320X 12   // Resolution of MCP320X
 #define SPI_SPEED 100000        // SPI speed
 #define SCK_PIN 3               // SCK pin
@@ -23,8 +24,8 @@ MCP3208 adc;
 uint16_t Channel[3][8];
 uint8_t CsPin[3] = {CS1_PIN, CS2_PIN, CS3_PIN};
 
-static const char* TAG = "Analog";
 
+static const char* TAG = "Analog";
 void TaskAnalog (void * pvParameters);
 
 // Analog function control

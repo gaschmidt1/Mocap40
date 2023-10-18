@@ -9,5 +9,6 @@
     #include <esp_log.h>
 
     void EncoderInit(void);
+    uint32_t EncoderGetPosition(uint8_t channel);
 
 #endif

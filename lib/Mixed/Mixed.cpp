@@ -1,6 +1,5 @@
 
-// todo : verificar como funciona o endereçamento nessa biblioteca (não tenho certeza de que diferentes placas não vão dar conflito de i/Os).
-// Todo : preciso verificar como a lib trata os i/os e como os numera.
+
 
 #include "Mixed.h"
 #include <Adafruit_BusIO_Register.h>

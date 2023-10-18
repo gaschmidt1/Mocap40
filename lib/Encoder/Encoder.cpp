@@ -1,11 +1,11 @@
 
 #include "Encoder.h"
 
-#define ENC_A1_PIN GPIO_NUM_0  // Pino A do encoder
-#define ENC_B1_PIN GPIO_NUM_1  // Pino B do encoder
+#define ENC_A1_PIN GPIO_NUM_18  // Pino A do encoder (confirmar)
+#define ENC_B1_PIN GPIO_NUM_19  // Pino B do encoder (confirmar)
 
-#define ENC_A2_PIN GPIO_NUM_18  // Pino A do encoder
-#define ENC_B2_PIN GPIO_NUM_19  // Pino B do encoder
+#define ENC_A2_PIN GPIO_NUM_0  // Pino A do encoder (confirmar)
+#define ENC_B2_PIN GPIO_NUM_1  // Pino B do encoder (confirmar)
 
 volatile int count1 = 0, count2 = 0;  // Variável para armazenar a contagem do encoder
 
@@ -45,9 +45,17 @@ void IRAM_ATTR encoderInterrupt2()
   count2 += encoderState[(old_AB2 & 0x0f)];
 }
 
+/**
+ * Initializes the encoder pins and interrupts.
+ *
+ * @return void
+ *
+ * @throws None
+ */
 void EncoderInit(void)
 {
     ESP_LOGI(TAG, "Encoder Init");
+
     // Inicializa os e a  pinos do encoder 1
     pinMode(ENC_A1_PIN, INPUT);
     pinMode(ENC_B1_PIN, INPUT);
@@ -60,5 +68,28 @@ void EncoderInit(void)
     attachInterrupt(digitalPinToInterrupt(ENC_A2_PIN), encoderInterrupt2, CHANGE);
     attachInterrupt(digitalPinToInterrupt(ENC_B2_PIN), encoderInterrupt2, CHANGE);
 
+}
 
+uint32_t EncoderGetPosition(uint8_t channel)
+{
+    if (channel == 1U)
+    {
+        return count1;
+    }
+    else
+    {
+        return count2;
+    }
+}
+
+void EncoderResetPosition(uint8_t channel)
+{
+    if (channel == 1U)
+    {
+        count1 = 0U;
+    }
+    else
+    {
+        count2 = 0U;
+    }
 }

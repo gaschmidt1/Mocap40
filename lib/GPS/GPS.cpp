@@ -21,11 +21,8 @@ TaskHandle_t TaskGPSHandle;
 void GPSInit(void)
 {
     ESP_LOGI(TAG, "GPS Init");
-
     GPSSemaphore = xSemaphoreCreateBinary();
-
     xSemaphoreGive(GPSSemaphore); 
-
     xTaskCreate(TaskGPS, "TaskGPS", 10000, NULL, 2, &TaskGPSHandle);
 }
 
@@ -49,8 +46,8 @@ void TaskGPS (void * pvParameters)
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             long latitude, longitude;
             gps.get_position(&latitude, &longitude, NULL);
+            //gps.get_datetime(&gps.year, &gps.month, &gps.day, &gps.hour, &gps.minute, &gps.seconds, &gps.age);
             ESP_LOGI(TAG, "Latitude:  %d, Longitude:  %d", latitude, longitude);
-            gps.
         }
         xSemaphoreGive(GPSSemaphore);
     }
