@@ -1,5 +1,6 @@
 
 #include "Display.h"
+#include <LiquidCrystal_I2C.h> // acrescentei para poder usar parte do codigo i2c
 
 static const char* TAG = "Display";
 
@@ -21,12 +22,10 @@ TaskHandle_t TaskDisplayHandle;
 void DisplayInit(void)
 {
     ESP_LOGI(TAG, "Display Init");
-
     DisplaySemaphore = xSemaphoreCreateBinary();
-
     xSemaphoreGive(DisplaySemaphore); 
-
     xTaskCreate(TaskDisplay, "TaskDisplay", 10000, NULL, 2, &TaskDisplayHandle);
+    LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7,3, POSITIVE);
 }
 
 /**

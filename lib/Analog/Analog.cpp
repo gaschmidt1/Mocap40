@@ -24,7 +24,7 @@ MCP3208 adc;
 uint16_t Channel[3][8];
 uint8_t CsPin[3] = {CS1_PIN, CS2_PIN, CS3_PIN};
 
-
+// Analog functions 
 static const char* TAG = "Analog";
 void TaskAnalog (void * pvParameters);
 
@@ -42,11 +42,8 @@ TaskHandle_t TaskAnalogHandle;
 void AnalogInit(void)
 {
     ESP_LOGI(TAG, "Analog Init");
-
     AnalogSemaphore = xSemaphoreCreateBinary();
-
     xSemaphoreGive(AnalogSemaphore);
-
     xTaskCreate(TaskAnalog, "TaskAnalog", 10000, NULL, 2, &TaskAnalogHandle);
 }
 

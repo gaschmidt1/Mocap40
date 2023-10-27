@@ -16,15 +16,20 @@
 #include "Mixed.h"
 #include "Outputs.h"
 
-
-
 static const char* TAG = "Main";
 
-void setup() 
+/**
+ * Initializes the setup for the program.
+ *
+ * @param void
+ *
+ * @return void
+ *
+ * @throws ErrorType N/A
+ */
+void setup(void) 
 {
   Serial.begin(115200);
-
-
 
   I2cScan();
   AnalogInit();
@@ -34,10 +39,18 @@ void setup()
   InputsInit();
   GPSInit();
   OutputsInit();
-
 }
 
-void loop() 
+/**
+ * A description of the entire C++ function.
+ *
+ * @param None
+ *
+ * @return None
+ *
+ * @throws None
+ */
+void loop(void) 
 {
   // put your main code here, to run repeatedly:
 }

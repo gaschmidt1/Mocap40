@@ -16,7 +16,6 @@ void OutputsInit(void)
     OutputsSemaphore = xSemaphoreCreateBinary();
     xSemaphoreGive(OutputsSemaphore);
     xTaskCreate(TaskOutputs, "TaskOutputs", 10000, NULL, 2, &TaskOutputsHandle);
-
 }
 
 void TaskOutputs (void * pvParameters)
